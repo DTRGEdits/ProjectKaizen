@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#0e0b16" />
+<meta name="theme-color" content="#180f0c" />
 <meta name="description" content="Kaizen — offline study tracker for long-term exam prep" />
 <title>Project Kaizen</title>
 <link rel="manifest" href="manifest.json" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%237c5cff'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E改%3C/text%3E%3C/svg%3E" />
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%237c5cff'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E改%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Quicksand:wght@500;600;700&display=swap" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23c98a4b'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23180f0c' font-family='serif'%3E改%3C/text%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23c98a4b'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23180f0c' font-family='serif'%3E改%3C/text%3E%3C/svg%3E" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -16,12 +18,26 @@
 <!-- ============ APP SHELL ============ -->
 <div id="app-shell">
 
-  <!-- ============ TOP BAR ============ -->
-  <header id="top-bar" class="top-bar">
-    <div class="top-bar-brand">
+  <!-- ============ HERO BANNER (photo if uploaded, else pure-CSS scene) ============ -->
+  <div class="hero-banner" id="hero-banner" aria-hidden="true">
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="sun"></div>
+    <div class="hills-back"></div>
+    <div class="hills"></div>
+    <div class="brand-plate">
       <span class="brand-mark">改</span>
       <span class="brand-text">Kaizen</span>
     </div>
+    <span class="brand-sub">study hollow</span>
+  </div>
+
+  <!-- ============ GALLERY STRIP (only shown once images are added) ============ -->
+  <div class="gallery-strip empty" id="gallery-strip"></div>
+
+  <!-- ============ TOP BAR ============ -->
+  <header id="top-bar" class="top-bar">
+    <div class="top-bar-left" id="top-bar-left"></div>
     <div class="top-bar-score" id="top-bar-score" title="Kaizen Score">
       <span id="top-score-value">--</span>
     </div>
@@ -282,10 +298,7 @@
       <div class="card">
         <div class="card-header"><span>Past Reviews</span></div>
         <div id="review-history-list" class="session-list"></div>
-      </div>
-    </section>
-
-    <!-- ---------- SETTINGS ---------- -->
+            <!-- ---------- SETTINGS ---------- -->
     <section class="page" id="page-settings" data-page="settings">
       <h1 class="page-title">Settings</h1>
       <div class="card">
@@ -296,13 +309,39 @@
         </div>
       </div>
       <div class="card">
+        <div class="card-header"><span>Ghibli Gallery</span></div>
+        <p class="prediction-text">Add your own stills for the banner, avatar, and gallery strip. Nothing shows until you add an image — the app stays clean by default. Images are resized and stored locally with the rest of your data.</p>
+
+        <label class="field-label">Banner photo</label>
+        <label class="btn-secondary" for="upload-banner-input">Choose Banner Photo</label>
+        <input type="file" id="upload-banner-input" accept="image/*" style="display:none;" />
+        <div class="gallery-preview-row" id="banner-preview-wrap" style="display:none;">
+          <img class="gallery-preview-banner" id="banner-preview-img" alt="Banner preview" />
+          <button class="btn-danger" id="remove-banner-btn">Remove</button>
+        </div>
+
+        <label class="field-label">Avatar (small circle, top bar)</label>
+        <label class="btn-secondary" for="upload-avatar-input">Choose Avatar Photo</label>
+        <input type="file" id="upload-avatar-input" accept="image/*" style="display:none;" />
+        <div class="gallery-preview-row" id="avatar-preview-wrap" style="display:none;">
+          <img class="gallery-preview-avatar" id="avatar-preview-img" alt="Avatar preview" />
+          <button class="btn-danger" id="remove-avatar-btn">Remove</button>
+        </div>
+
+        <label class="field-label">Gallery strip (multiple photos, shown under the banner)</label>
+        <label class="btn-secondary" for="upload-gallery-input">Add Gallery Photos</label>
+        <input type="file" id="upload-gallery-input" accept="image/*" multiple style="display:none;" />
+        <div class="gallery-manage-list" id="gallery-manage-list"></div>
+      </div>
+      <div class="card">
         <div class="card-header"><span>Accent Color</span></div>
         <div class="chip-row" id="accent-color-row">
-          <button class="accent-dot" data-accent="purple" style="background:#7c5cff"></button>
-          <button class="accent-dot" data-accent="blue" style="background:#3b82f6"></button>
-          <button class="accent-dot" data-accent="green" style="background:#22c55e"></button>
-          <button class="accent-dot" data-accent="orange" style="background:#f97316"></button>
-          <button class="accent-dot" data-accent="red" style="background:#ef4444"></button>
+          <button class="accent-dot" data-accent="amber" style="background:#c98a4b"></button>
+          <button class="accent-dot" data-accent="purple" style="background:#9b7bc4"></button>
+          <button class="accent-dot" data-accent="blue" style="background:#6f9bc7"></button>
+          <button class="accent-dot" data-accent="green" style="background:#7fa361"></button>
+          <button class="accent-dot" data-accent="orange" style="background:#d1793f"></button>
+          <button class="accent-dot" data-accent="red" style="background:#c15c52"></button>
         </div>
       </div>
       <div class="card">
@@ -311,6 +350,11 @@
         <input type="time" id="reminder-time" class="input-field" />
         <button class="btn-primary" id="save-reminder-btn">Save Reminder</button>
         <p class="prediction-text" id="notif-permission-text"></p>
+      </div>
+      <div class="card" id="install-card">
+        <div class="card-header"><span>Install App<span class="install-badge" id="install-status-badge" style="display:none;">Installed</span></span></div>
+        <p class="prediction-text" id="install-instructions-text">Install Kaizen to your home screen for a full-screen, offline-ready app experience.</p>
+        <button class="btn-primary" id="install-app-btn" style="display:none;">Install Kaizen</button>
       </div>
       <div class="card">
         <div class="card-header"><span>Backup</span></div>
