@@ -34,9 +34,9 @@ const App = {
     "Slow is smooth. Smooth is fast."
   ],
   SUBJECT_COLORS: {
-    Maths:"#7c5cff", Physics:"#3b82f6", Chemistry:"#22c55e", Biology:"#f59e0b",
-    History:"#ef4444", Geography:"#06b6d4", English:"#ec4899", Hindi:"#f97316",
-    Japanese:"#a855f7", Computer:"#14b8a6", Essay:"#eab308", Projects:"#8b5cf6"
+    Maths:"#c98a4b", Physics:"#6f9bc7", Chemistry:"#7fa361", Biology:"#e0a868",
+    History:"#c15c52", Geography:"#5fa7a3", English:"#c67ba0", Hindi:"#d1793f",
+    Japanese:"#9b7bc4", Computer:"#5f9e8f", Essay:"#d4b256", Projects:"#a87c9e"
   },
 
   /* ------------------------------------------------------------------
@@ -46,6 +46,7 @@ const App = {
   currentPage: "dashboard",
   calendarViewDate: new Date(), // month currently shown in Calendar page
   cache: {},           // memoized derived values, invalidated on save()
+  deferredInstallPrompt: null, // captured 'beforeinstallprompt' event, if any
 
   /* ------------------------------------------------------------------
      2. INIT
@@ -55,6 +56,9 @@ const App = {
     this.applyTheme();
     this.bindNavigation();
     this.bindGlobalHandlers();
+    this.bindInstallPrompt();
+    this.bindGalleryHandlers();
+    this.applyGalleryVisuals();
     this.renderAll();
     this.registerServiceWorker();
   },
@@ -73,11 +77,12 @@ const App = {
         subjects: {}
       },
       settings: {
-        theme: "dark", accent: "purple",
+        theme: "dark", accent: "amber",
         reminderTime: "", jlptDate: "", jlptLevel: "N5"
       },
       sleep: { logs: {} },
-      immersion: { logs: [] }
+      immersion: { logs: [] },
+      gallery: { banner: "", avatar: "", thumbnails: [] }
     };
   },
 
@@ -104,6 +109,8 @@ const App = {
       if (!this.db.reviews) this.db.reviews = { daily: [], weekly: [] };
       if (!this.db.sleep || !this.db.sleep.logs) this.db.sleep = { logs: {} };
       if (!this.db.immersion || !Array.isArray(this.db.immersion.logs)) this.db.immersion = { logs: [] };
+      if (!this.db.gallery) this.db.gallery = { banner: "", avatar: "", thumbnails: [] };
+      if (!Array.isArray(this.db.gallery.thumbnails)) this.db.gallery.thumbnails = [];
     } catch (err) {
       console.error("Kaizen: failed to load DB, resetting.", err);
       this.db = this.defaultDB();
@@ -254,379 +261,7 @@ const App = {
       case "planner": this.renderPlannerPage(); break;
     }
   },
-
-  /* ------------------------------------------------------------------
-     6. GLOBAL EVENT BINDINGS (buttons that exist once in the DOM)
-     ------------------------------------------------------------------ */
-  bindGlobalHandlers() {
-    // Study logger
-    document.querySelectorAll("#duration-grid .chip").forEach(chip => {
-      chip.addEventListener("click", () => {
-        document.querySelectorAll("#duration-grid .chip").forEach(c => c.classList.remove("selected"));
-        chip.classList.add("selected");
-        const custom = this.$("study-custom");
-        if (custom) custom.value = "";
-        chip.dataset.active = "true";
-        document.querySelectorAll("#duration-grid .chip").forEach(c => { if (c !== chip) c.dataset.active = ""; });
-      });
-    });
-    const customInput = this.$("study-custom");
-    if (customInput) customInput.addEventListener("input", () => {
-      document.querySelectorAll("#duration-grid .chip").forEach(c => c.classList.remove("selected"));
-    });
-
-    const focusSlider = this.$("study-focus");
-    if (focusSlider) focusSlider.addEventListener("input", () => this.setText("focus-value", focusSlider.value));
-    const energySlider = this.$("study-energy");
-    if (energySlider) energySlider.addEventListener("input", () => this.setText("energy-value", energySlider.value));
-
-    const saveBtn = this.$("save-session-btn");
-    if (saveBtn) saveBtn.addEventListener("click", () => this.saveSession());
-
-    // History filters
-    const searchInput = this.$("history-search");
-    if (searchInput) searchInput.addEventListener("input", () => this.renderHistoryList());
-    const filterSubject = this.$("history-filter-subject");
-    if (filterSubject) filterSubject.addEventListener("change", () => this.renderHistoryList());
-    const sortSelect = this.$("history-sort");
-    if (sortSelect) sortSelect.addEventListener("change", () => this.renderHistoryList());
-
-    // Calendar nav
-    const calPrev = this.$("cal-prev");
-    if (calPrev) calPrev.addEventListener("click", () => {
-      this.calendarViewDate.setMonth(this.calendarViewDate.getMonth() - 1);
-      this.renderCalendarPage();
-    });
-    const calNext = this.$("cal-next");
-    if (calNext) calNext.addEventListener("click", () => {
-      this.calendarViewDate.setMonth(this.calendarViewDate.getMonth() + 1);
-      this.renderCalendarPage();
-    });
-
-    // Habits sleep
-    const saveSleepBtn = this.$("save-sleep-btn");
-    if (saveSleepBtn) saveSleepBtn.addEventListener("click", () => this.saveSleep());
-
-    // Japanese
-    const jpAddBtn = this.$("jp-add-immersion-btn");
-    if (jpAddBtn) jpAddBtn.addEventListener("click", () => this.addImmersion());
-    const jlptSaveBtn = this.$("jlpt-save-btn");
-    if (jlptSaveBtn) jlptSaveBtn.addEventListener("click", () => this.saveJLPT());
-
-    // Goals
-    const saveGoalsBtn = this.$("save-goals-btn");
-    if (saveGoalsBtn) saveGoalsBtn.addEventListener("click", () => this.saveGoals());
-    const saveSubjectGoalsBtn = this.$("save-subject-goals-btn");
-    if (saveSubjectGoalsBtn) saveSubjectGoalsBtn.addEventListener("click", () => this.saveSubjectGoals());
-
-    // Review
-    const moodSlider = this.$("review-mood");
-    if (moodSlider) moodSlider.addEventListener("input", () => this.setText("mood-value", moodSlider.value));
-    const prodSlider = this.$("review-productivity");
-    if (prodSlider) prodSlider.addEventListener("input", () => this.setText("productivity-value", prodSlider.value));
-    const saveDailyReviewBtn = this.$("save-daily-review-btn");
-    if (saveDailyReviewBtn) saveDailyReviewBtn.addEventListener("click", () => this.saveDailyReview());
-    const saveWeeklyReviewBtn = this.$("save-weekly-review-btn");
-    if (saveWeeklyReviewBtn) saveWeeklyReviewBtn.addEventListener("click", () => this.saveWeeklyReview());
-
-    // Settings
-    document.querySelectorAll("[data-theme]").forEach(btn => {
-      btn.addEventListener("click", () => this.setTheme(btn.dataset.theme));
-    });
-    document.querySelectorAll("[data-accent]").forEach(btn => {
-      btn.addEventListener("click", () => this.setAccent(btn.dataset.accent));
-    });
-    const saveReminderBtn = this.$("save-reminder-btn");
-    if (saveReminderBtn) saveReminderBtn.addEventListener("click", () => this.saveReminder());
-    const exportBtn = this.$("export-backup-btn");
-    if (exportBtn) exportBtn.addEventListener("click", () => this.exportBackup());
-    const importInput = this.$("import-backup-input");
-    if (importInput) importInput.addEventListener("change", (e) => this.importBackup(e));
-    const resetBtn = this.$("reset-data-btn");
-    if (resetBtn) resetBtn.addEventListener("click", () => this.resetData());
-  },
-
-  /* ------------------------------------------------------------------
-     7. STATS ENGINE  (memoized per persist() call)
-     ------------------------------------------------------------------ */
-  getStats() {
-    if (this.cache.stats) return this.cache.stats;
-
-    const sessions = this.db.sessions;
-    const now = new Date();
-    const todayKey = this.formatDateKey(now);
-    const weekKey = this.getISOWeekKey(now);
-    const monthKey = this.getMonthKey(now);
-    const yearKey = this.getYearKey(now);
-
-    let todayMin = 0, weekMin = 0, monthMin = 0, yearMin = 0, lifetimeMin = 0;
-    let focusSum = 0, focusCount = 0, energySum = 0, energyCount = 0;
-    const subjectMinutes = {};
-    const dayMinutes = {};       // dateKey -> minutes (for streaks + calendar)
-    const dayFocus = {};         // dateKey -> {sum,count}
-    let jpWeekMin = 0;
-
-    for (const s of sessions) {
-      const mins = s.minutes || 0;
-      lifetimeMin += mins;
-      if (s.date === todayKey) todayMin += mins;
-      if (s.week === weekKey) weekMin += mins;
-      if (s.month === monthKey) monthMin += mins;
-      if (s.year === yearKey) yearMin += mins;
-      if (s.week === weekKey && s.subject === "Japanese") jpWeekMin += mins;
-
-      subjectMinutes[s.subject] = (subjectMinutes[s.subject] || 0) + mins;
-      dayMinutes[s.date] = (dayMinutes[s.date] || 0) + mins;
-
-      if (typeof s.focus === "number") { focusSum += s.focus; focusCount++; }
-      if (typeof s.energy === "number") { energySum += s.energy; energyCount++; }
-    }
-
-    // Streak calculation: a day "counts" if total study >= 30 minutes.
-    let currentStreak = 0;
-    let cursor = this.stripTime(now);
-    // If today has no qualifying study yet, streak counts back from yesterday
-    if (!(dayMinutes[this.formatDateKey(cursor)] >= 30)) {
-      cursor.setDate(cursor.getDate() - 1);
-    }
-    while (dayMinutes[this.formatDateKey(cursor)] >= 30) {
-      currentStreak++;
-      cursor.setDate(cursor.getDate() - 1);
-    }
-
-    // Longest streak across all recorded days
-    const allDayKeys = Object.keys(dayMinutes).sort();
-    let longestStreak = 0, runStreak = 0, prevDate = null;
-    for (const key of allDayKeys) {
-      if (dayMinutes[key] < 30) { runStreak = 0; prevDate = null; continue; }
-      const d = this.parseDateKey(key);
-      if (prevDate && this.daysBetween(prevDate, d) === 1) {
-        runStreak++;
-      } else {
-        runStreak = 1;
-      }
-      longestStreak = Math.max(longestStreak, runStreak);
-      prevDate = d;
-    }
-    longestStreak = Math.max(longestStreak, currentStreak);
-
-    const stats = {
-      todayMin, weekMin, monthMin, yearMin, lifetimeMin,
-      currentStreak, longestStreak,
-      avgFocus: focusCount ? (focusSum / focusCount) : null,
-      avgEnergy: energyCount ? (energySum / energyCount) : null,
-      subjectMinutes, dayMinutes,
-      jpWeekMin,
-      todayKey, weekKey, monthKey, yearKey,
-      totalSessions: sessions.length
-    };
-    this.cache.stats = stats;
-    return stats;
-  },
-
-  /* ------------------------------------------------------------------
-     8. DASHBOARD
-     ------------------------------------------------------------------ */
-  renderDashboard() {
-    const stats = this.getStats();
-    this.setText("stat-today", this.minutesToHM(stats.todayMin));
-    this.setText("stat-week", this.minutesToHM(stats.weekMin));
-    this.setText("stat-month", this.minutesToHM(stats.monthMin));
-    this.setText("stat-year", this.minutesToHM(stats.yearMin));
-    this.setText("stat-lifetime", this.minutesToHM(stats.lifetimeMin));
-    this.setText("stat-streak", stats.currentStreak + " days");
-    this.setText("stat-longest-streak", stats.longestStreak + " days");
-    this.setText("stat-avg-focus", stats.avgFocus != null ? stats.avgFocus.toFixed(1) : "--");
-    this.setText("stat-avg-energy", stats.avgEnergy != null ? stats.avgEnergy.toFixed(1) : "--");
-
-    // Quote of the day — deterministic by date so it doesn't change on every render.
-    const dayIndex = Math.floor(Date.now() / 86400000) % this.QUOTES.length;
-    this.setText("quote-of-day", this.QUOTES[dayIndex]);
-
-    // Goal progress
-    const goals = this.db.goals;
-    const dailyGoalMin = (goals.daily || 0) * 60;
-    const weeklyGoalMin = (goals.weekly || 0) * 60;
-    this.setText("daily-goal-label", this.minutesToHours1(stats.todayMin) + " / " + (goals.daily || 0) + "h");
-    this.setWidth("daily-goal-fill", dailyGoalMin ? (stats.todayMin / dailyGoalMin) * 100 : 0);
-    this.setText("weekly-goal-label", this.minutesToHours1(stats.weekMin) + " / " + (goals.weekly || 0) + "h");
-    this.setWidth("weekly-goal-fill", weeklyGoalMin ? (stats.weekMin / weeklyGoalMin) * 100 : 0);
-
-    // Subject distribution (last 7 days) chart
-    this.renderSubjectDistChart("chart-dash-subject", this.getSubjectMinutesInRange(7));
-
-    // Kaizen score
-    const score = this.computeKaizenScore();
-    this.setText("kaizen-score-label", score + " / 100");
-    this.setText("top-score-value", score);
-    this.drawScoreRing(score);
-
-    // Insights
-    this.renderInsights();
-
-    // Japanese quick stats
-    this.setText("dash-jp-week", this.minutesToHM(stats.jpWeekMin));
-    this.setText("dash-jlpt-countdown", this.getJLPTCountdownText());
-
-    // Prediction
-    this.setText("prediction-message", this.generatePrediction());
-  },
-
-  getSubjectMinutesInRange(days) {
-    const cutoff = this.stripTime(new Date());
-    cutoff.setDate(cutoff.getDate() - (days - 1));
-    const result = {};
-    for (const s of this.db.sessions) {
-      const d = this.parseDateKey(s.date);
-      if (d >= cutoff) {
-        result[s.subject] = (result[s.subject] || 0) + (s.minutes || 0);
-      }
-    }
-    return result;
-  },
-
-  computeKaizenScore() {
-    // Documented formula — see README.md "Kaizen Score Formula".
-    // Consistency 25 | Study hours 20 | Habits 15 | Sleep 10 | Focus 10 | Energy 10 | Goals 10
-    const stats = this.getStats();
-    const goals = this.db.goals;
-
-    // Consistency: current streak capped at 14 days => 25 pts
-    const consistency = Math.min(25, (stats.currentStreak / 14) * 25);
-
-    // Study hours: today's minutes vs daily goal => 20 pts
-    const dailyGoalMin = (goals.daily || 2) * 60;
-    const studyHours = dailyGoalMin ? Math.min(20, (stats.todayMin / dailyGoalMin) * 20) : 0;
-
-    // Habits: today's completed habits ratio => 15 pts
-    const todayKey = this.formatDateKey(new Date());
-    const todayHabits = (this.db.habits.logs[todayKey]) || {};
-    const habitCount = this.HABIT_DEFS.length;
-    const habitsDone = this.HABIT_DEFS.filter(h => todayHabits[h.key]).length;
-    const habitsScore = habitCount ? (habitsDone / habitCount) * 15 : 0;
-
-    // Sleep: last logged hours vs 7h target => 10 pts
-    const sleepKeys = Object.keys(this.db.sleep.logs).sort();
-    const lastSleep = sleepKeys.length ? this.db.sleep.logs[sleepKeys[sleepKeys.length - 1]] : null;
-    const sleepScore = lastSleep != null ? Math.min(10, (lastSleep / 7) * 10) : 5;
-
-    // Focus: today's average focus vs 5 => 10 pts
-    const todaySessions = this.db.sessions.filter(s => s.date === todayKey);
-    const focusAvgToday = todaySessions.length
-      ? todaySessions.reduce((a, s) => a + (s.focus || 0), 0) / todaySessions.length
-      : (stats.avgFocus || 0);
-    const focusScore = focusAvgToday ? (focusAvgToday / 5) * 10 : 0;
-
-    // Energy: today's average energy vs 5 => 10 pts
-    const energyAvgToday = todaySessions.length
-      ? todaySessions.reduce((a, s) => a + (s.energy || 0), 0) / todaySessions.length
-      : (stats.avgEnergy || 0);
-    const energyScore = energyAvgToday ? (energyAvgToday / 5) * 10 : 0;
-
-    // Goal completion: weekly progress => 10 pts
-    const weeklyGoalMin = (goals.weekly || 14) * 60;
-    const goalScore = weeklyGoalMin ? Math.min(10, (stats.weekMin / weeklyGoalMin) * 10) : 0;
-
-    const total = consistency + studyHours + habitsScore + sleepScore + focusScore + energyScore + goalScore;
-    return Math.round(Math.max(0, Math.min(100, total)));
-  },
-
-  drawScoreRing(score) {
-    const canvas = this.$("kaizen-score-ring");
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const w = canvas.width, h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
-    const cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 10;
-    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#7c5cff";
-    const track = getComputedStyle(document.documentElement).getPropertyValue("--bg-elev-3").trim() || "#262032";
-
-    ctx.lineWidth = 12;
-    ctx.strokeStyle = track;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.strokeStyle = accent;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    const endAngle = -Math.PI / 2 + (Math.PI * 2) * (score / 100);
-    ctx.arc(cx, cy, r, -Math.PI / 2, endAngle);
-    ctx.stroke();
-
-    this.setText("kaizen-score-ring-value", score);
-  },
-
-  renderInsights() {
-    const list = this.$("insight-list");
-    if (!list) return;
-    const insights = this.generateInsights();
-    if (!insights.length) {
-      list.innerHTML = '<li>Log a few sessions to unlock insights.</li>';
-      return;
-    }
-    list.innerHTML = insights.map(i => `<li>${this.escapeHTML(i)}</li>`).join("");
-  },
-
-  generateInsights() {
-    const insights = [];
-    const stats = this.getStats();
-    const sessions = this.db.sessions;
-    if (!sessions.length) return insights;
-
-    // Consistency check for a subject: studied on 4+ of last 7 days
-    const last7 = this.stripTime(new Date());
-    last7.setDate(last7.getDate() - 6);
-    const bySubjectDays = {};
-    const last7Sessions = sessions.filter(s => this.parseDateKey(s.date) >= last7);
-    last7Sessions.forEach(s => {
-      bySubjectDays[s.subject] = bySubjectDays[s.subject] || new Set();
-      bySubjectDays[s.subject].add(s.date);
-    });
-    for (const subj in bySubjectDays) {
-      if (bySubjectDays[subj].size >= 4) {
-        insights.push(`You study ${subj} consistently (${bySubjectDays[subj].size} of the last 7 days).`);
-      }
-    }
-
-    // Focus trend: compare avg focus of last 5 sessions vs previous 5
-    const sorted = [...sessions].sort((a, b) => a.timestamp - b.timestamp);
-    if (sorted.length >= 6) {
-      const recent = sorted.slice(-5);
-      const prior = sorted.slice(-10, -5);
-      const avg = arr => arr.reduce((a, s) => a + (s.focus || 0), 0) / arr.length;
-      if (prior.length) {
-        const diff = avg(recent) - avg(prior);
-        if (diff <= -0.6) insights.push("Your focus is dropping compared to recent sessions.");
-        else if (diff >= 0.6) insights.push("Your focus is improving — keep it up.");
-      }
-    }
-
-    // Japanese immersion trend: this week vs last week
-    const now = new Date();
-    const thisWeekKey = this.getISOWeekKey(now);
-    const lastWeekDate = new Date(now); lastWeekDate.setDate(lastWeekDate.getDate() - 7);
-    const lastWeekKey = this.getISOWeekKey(lastWeekDate);
-    const immersion = this.db.immersion.logs;
-    const sumImmersion = (wk) => immersion.filter(i => this.getISOWeekKey(this.parseDateKey(i.date)) === wk)
-      .reduce((a, i) => a + i.minutes, 0);
-    const thisWeekImm = sumImmersion(thisWeekKey) + (stats.jpWeekMin || 0);
-    const lastWeekImm = sumImmersion(lastWeekKey);
-    if (lastWeekImm > 0 && thisWeekImm > lastWeekImm * 1.15) {
-      insights.push("Japanese immersion increased compared to last week.");
-    } else if (lastWeekImm > 0 && thisWeekImm < lastWeekImm * 0.7) {
-      insights.push("Japanese immersion dropped compared to last week.");
-    }
-
-    // Weekly goal check
-    const weeklyGoalMin = (this.db.goals.weekly || 0) * 60;
-    if (weeklyGoalMin > 0) {
-      const now2 = new Date();
-      const dow = (now2.getDay() + 6) % 7; // days elapsed this week (Mon=0)
-      const expectedByNow = weeklyGoalMin * ((dow + 1) / 7);
-      if (stats.weekMin < expectedByNow * 0.7) {
-        insights.push("You're behind your weekly goal — consider an extra session today.");
-      } else if (stats.weekMin >= weeklyGoalMin) {
+} else if (stats.weekMin >= weeklyGoalMin) {
         insights.push("You've hit your weekly goal already. Great work!");
       }
     }
@@ -792,6 +427,31 @@ const App = {
   },
 
   deleteSession(id) {
+    const idx = this.db.sessions.findIndex(s => s.id === id);
+    if (idx === -1) return;
+    this.db.sessions.splice(idx, 1);
+    this.persist();
+    this.renderHistoryList();
+    this.toast("Session deleted");
+  },
+
+  editSessionPrompt(id) {
+    const session = this.db.sessions.find(s => s.id === id);
+    if (!session) return;
+    const newMinutes = window.prompt("Edit duration (minutes):", session.minutes);
+    if (newMinutes === null) return;
+    const parsed = Number(newMinutes);
+    if (!parsed || parsed <= 0) {
+      this.toast("Invalid duration");
+      return;
+    }
+    const newNotes = window.prompt("Edit notes:", session.notes || "");
+    session.minutes = Math.round(parsed);
+    if (newNotes !== null) session.notes = newNotes.trim();
+    this.persist();
+    this.renderHistoryList();
+    this.toast("Session updated");
+  },
     const idx = this.db.sessions.findIndex(s => s.id === id);
     if (idx === -1) return;
     this.db.sessions.splice(idx, 1);
@@ -1150,7 +810,6 @@ const App = {
     });
     this.drawBarChart("chart-time-of-day", buckets, totals.map(m => this.minutesToHours1(m)), this.themeColor("--accent-strong"));
   },
-
   /* ------------------------------------------------------------------
      13. HABITS + SLEEP
      ------------------------------------------------------------------ */
@@ -1359,8 +1018,7 @@ const App = {
       ? `You've completed ${totalCompleted.toFixed(1)}h of ${totalGoal}h planned this week (${overallPct}%).`
       : "Set subject goals on the Goals page to populate your planner.");
   },
-
-  /* ------------------------------------------------------------------
+    /* ------------------------------------------------------------------
      17. REVIEW
      ------------------------------------------------------------------ */
   renderReviewPage() {
@@ -1390,7 +1048,6 @@ const App = {
       distraction: this.$("review-distraction")?.value.trim() || "",
       plan: this.$("review-plan")?.value.trim() || ""
     };
-    // Replace existing entry for today if present
     const existingIdx = this.db.reviews.daily.findIndex(r => r.date === entry.date);
     if (existingIdx >= 0) this.db.reviews.daily[existingIdx] = entry;
     else this.db.reviews.daily.push(entry);
@@ -1436,7 +1093,6 @@ const App = {
       </div>
     `).join("");
   },
-
   /* ------------------------------------------------------------------
      18. SETTINGS
      ------------------------------------------------------------------ */
@@ -1446,6 +1102,8 @@ const App = {
     document.querySelectorAll("[data-accent]").forEach(btn => btn.classList.toggle("selected", btn.dataset.accent === s.accent));
     if (this.$("reminder-time")) this.$("reminder-time").value = s.reminderTime || "";
     this.setText("notif-permission-text", this.getNotificationPermissionText());
+    this.updateInstallCard();
+    this.renderGallerySettings();
   },
 
   applyTheme() {
@@ -1528,9 +1186,13 @@ const App = {
         if (!this.db.reviews) this.db.reviews = { daily: [], weekly: [] };
         if (!this.db.sleep || !this.db.sleep.logs) this.db.sleep = { logs: {} };
         if (!this.db.immersion || !Array.isArray(this.db.immersion.logs)) this.db.immersion = { logs: [] };
+        if (!this.db.gallery) this.db.gallery = { banner: "", avatar: "", thumbnails: [] };
+        if (!Array.isArray(this.db.gallery.thumbnails)) this.db.gallery.thumbnails = [];
         this.persist();
         this.applyTheme();
-        this.setText("backup-status-text", "Backup imported successfully.");
+        this.applyGalleryVisuals();
+       
+       this.setText("backup-status-text", "Backup imported successfully.");
         this.toast("Backup imported");
         this.renderPage(this.currentPage);
       } catch (err) {
@@ -1549,14 +1211,315 @@ const App = {
     this.db = this.defaultDB();
     this.persist();
     this.applyTheme();
+    this.applyGalleryVisuals();
     this.toast("All data reset");
     this.navigateTo("dashboard");
   },
 
   /* ------------------------------------------------------------------
-     19. SERVICE WORKER
+     18b. INSTALL AS APP (PWA "Add to Home Screen")
      ------------------------------------------------------------------ */
-  registerServiceWorker() {
+  bindInstallPrompt() {
+    // Chrome/Edge/Android fire this event when the app qualifies for install.
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      this.deferredInstallPrompt = e;
+      this.updateInstallCard();
+    });
+
+    window.addEventListener("appinstalled", () => {
+      this.deferredInstallPrompt = null;
+      this.toast("Kaizen installed");
+      this.updateInstallCard();
+    });
+
+    const installBtn = this.$("install-app-btn");
+    if (installBtn) {
+      installBtn.addEventListener("click", async () => {
+        if (!this.deferredInstallPrompt) return;
+        this.deferredInstallPrompt.prompt();
+        await this.deferredInstallPrompt.userChoice;
+        this.deferredInstallPrompt = null;
+        this.updateInstallCard();
+      });
+    }
+
+    this.updateInstallCard();
+  },
+
+  isRunningStandalone() {
+    return window.matchMedia("(display-mode: standalone)").matches
+      || window.navigator.standalone === true; // iOS Safari flag
+  },
+
+  updateInstallCard() {
+    const btn = this.$("install-app-btn");
+    const text = this.$("install-instructions-text");
+    const badge = this.$("install-status-badge");
+    if (!btn || !text) return;
+
+    if (this.isRunningStandalone()) {
+      btn.style.display = "none";
+      if (badge) badge.style.display = "inline-block";
+      text.textContent = "Kaizen is already running as an installed app.";
+      return;
+    }
+    if (badge) badge.style.display = "none";
+
+    if (this.deferredInstallPrompt) {
+      btn.style.display = "block";
+      text.textContent = "Kaizen is ready to install for a full-screen, offline app experience.";
+      return;
+    }
+
+    btn.style.display = "none";
+    const ua = navigator.userAgent || "";
+    const isIOS = /iPad|iPhone|iPod/.test(ua);
+    if (isIOS) {
+      text.textContent = "On iPhone/iPad: tap the Share icon in Safari, then \"Add to Home Screen\".";
+    } else if (location.protocol !== "http:" && location.protocol !== "https:") {
+      text.textContent = "Open this app over http(s):// (not as a local file) to enable installing it, e.g. by serving the folder or hosting it, then look for \"Install app\" in your browser's menu.";
+    } else {
+      text.textContent = "Look for \"Install app\" or \"Add to Home Screen\" in your browser's menu (⋮ on Android Chrome) to install Kaizen.";
+    }
+  },
+
+  /* ------------------------------------------------------------------
+     18c. GHIBLI GALLERY (user-supplied photos: banner, avatar, strip)
+     ------------------------------------------------------------------
+     Images are resized client-side via canvas before being stored as
+     base64 data URLs inside kaizenDB, keeping everything in the single
+     localStorage key while staying reasonably small.
+     ------------------------------------------------------------------ */
+  GALLERY_MAX_THUMBS: 12,
+
+  resizeImageFile(file, maxDim, quality) {
+    return new Promise((resolve, reject) => {
+      if (!file || !file.type || !file.type.startsWith("image/")) {
+        reject(new Error("Not an image file"));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("Could not read file"));
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error("Could not decode image"));
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > height && width > maxDim) {
+            height = Math.round(height * (maxDim / width));
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = Math.round(width * (maxDim / height));
+            height = maxDim;
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  },
+
+  bindGalleryHandlers() {
+    const bannerInput = this.$("upload-banner-input");
+    if (bannerInput) bannerInput.addEventListener("change", (e) => this.handleBannerUpload(e));
+    const removeBannerBtn = this.$("remove-banner-btn");
+    if (removeBannerBtn) removeBannerBtn.addEventListener("click", () => this.removeBanner());
+
+    const avatarInput = this.$("upload-avatar-input");
+    if (avatarInput) avatarInput.addEventListener("change", (e) => this.handleAvatarUpload(e));
+    const removeAvatarBtn = this.$("remove-avatar-btn");
+    if (removeAvatarBtn) removeAvatarBtn.addEventListener("click", () => this.removeAvatar());
+
+    const galleryInput = this.$("upload-gallery-input");
+    if (galleryInput) galleryInput.addEventListener("change", (e) => this.handleGalleryUpload(e));
+  },
+
+  async handleBannerUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const dataUrl = await this.resizeImageFile(file, 1280, 0.75);
+      const previous = this.db.gallery.banner;
+      this.db.gallery.banner = dataUrl;
+      if (!this.persist()) {
+        this.db.gallery.banner = previous;
+        this.toast("Image too large to store — try a smaller photo.");
+        return;
+      }
+      this.applyGalleryVisuals();
+      this.renderSettingsPage();
+      this.toast("Banner updated");
+    } catch (err) {
+      console.error(err);
+      this.toast("Couldn't load that image.");
+    }
+  },
+
+  removeBanner() {
+    this.db.gallery.banner = "";
+    this.persist();
+    this.applyGalleryVisuals();
+    this.renderSettingsPage();
+    this.toast("Banner removed");
+  },
+
+  async handleAvatarUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const dataUrl = await this.resizeImageFile(file, 300, 0.8);
+      const previous = this.db.gallery.avatar;
+      this.db.gallery.avatar = dataUrl;
+      if (!this.persist()) {
+        this.db.gallery.avatar = previous;
+        this.toast("Image too large to store — try a smaller photo.");
+        return;
+      }
+      this.applyGalleryVisuals();
+      this.renderSettingsPage();
+      this.toast("Avatar updated");
+    } catch (err) {
+      console.error(err);
+      this.toast("Couldn't load that image.");
+    }
+  },
+
+  removeAvatar() {
+    this.db.gallery.avatar = "";
+    this.persist();
+    this.applyGalleryVisuals();
+    this.renderSettingsPage();
+    this.toast("Avatar removed");
+  },
+
+  async handleGalleryUpload(event) {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    event.target.value = "";
+    if (!files.length) return;
+    const remaining = this.GALLERY_MAX_THUMBS - this.db.gallery.thumbnails.length;
+    if (remaining <= 0) {
+      this.toast(`Gallery is full (max ${this.GALLERY_MAX_THUMBS}). Remove one first.`);
+      return;
+    }
+    const toProcess = files.slice(0, remaining);
+    let added = 0;
+    for (const file of toProcess) {
+      try {
+        const dataUrl = await this.resizeImageFile(file, 480, 0.72);
+        const entry = { id: this.uid(), src: dataUrl };
+        this.db.gallery.thumbnails.push(entry);
+        if (!this.persist()) {
+          this.db.gallery.thumbnails.pop();
+          this.toast("Storage full — couldn't add all photos.");
+          break;
+        }
+        added++;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    if (added) this.toast(`Added ${added} photo${added > 1 ? "s" : ""} to the gallery`);
+    this.applyGalleryVisuals();
+    this.renderSettingsPage();
+  },
+
+  removeGalleryThumb(id) {
+    const idx = this.db.gallery.thumbnails.findIndex(t => t.id === id);
+    if (idx === -1) return;
+    this.db.gallery.thumbnails.splice(idx, 1);
+    this.persist();
+    this.applyGalleryVisuals();
+    this.renderSettingsPage();
+  },
+
+  applyGalleryVisuals() {
+    const gallery = this.db.gallery || { banner: "", avatar: "", thumbnails: [] };
+
+    // Banner
+    const banner = this.$("hero-banner");
+    if (banner) {
+      if (gallery.banner) {
+        banner.style.backgroundImage = `url(${gallery.banner})`;
+        banner.classList.add("has-photo");
+      } else {
+        banner.style.backgroundImage = "";
+        banner.classList.remove("has-photo");
+      }
+    }
+
+    // Avatar (top bar, left slot — stays empty, no placeholder, if unset)
+    const topBarLeft = this.$("top-bar-left");
+    if (topBarLeft) {
+      topBarLeft.innerHTML = gallery.avatar
+        ? `<img class="top-bar-avatar" src="${gallery.avatar}" alt="Avatar" />`
+        : "";
+    }
+
+    // Gallery strip (hidden entirely when empty)
+    const strip = this.$("gallery-strip");
+    if (strip) {
+      if (gallery.thumbnails && gallery.thumbnails.length) {
+        strip.classList.remove("empty");
+        strip.innerHTML = gallery.thumbnails.map(t => `<img src="${t.src}" alt="" />`).join("");
+      } else {
+        strip.classList.add("empty");
+        strip.innerHTML = "";
+      }
+    }
+  },
+
+  renderGallerySettings() {
+    const gallery = this.db.gallery || { banner: "", avatar: "", thumbnails: [] };
+
+    const bannerWrap = this.$("banner-preview-wrap");
+    const bannerImg = this.$("banner-preview-img");
+    if (bannerWrap && bannerImg) {
+      if (gallery.banner) {
+        bannerImg.src = gallery.banner;
+        bannerWrap.style.display = "flex";
+      } else {
+        bannerWrap.style.display = "none";
+      }
+    }
+
+    const avatarWrap = this.$("avatar-preview-wrap");
+    const avatarImg = this.$("avatar-preview-img");
+    if (avatarWrap && avatarImg) {
+      if (gallery.avatar) {
+        avatarImg.src = gallery.avatar;
+        avatarWrap.style.display = "flex";
+      } else {
+        avatarWrap.style.display = "none";
+      }
+    }
+
+    const manageList = this.$("gallery-manage-list");
+    if (manageList) {
+      manageList.innerHTML = (gallery.thumbnails || []).map(t => `
+        <div class="gallery-manage-item" data-id="${t.id}">
+          <img src="${t.src}" alt="" />
+          <button data-id="${t.id}" aria-label="Remove photo">×</button>
+        </div>
+      `).join("");
+      manageList.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => this.removeGalleryThumb(btn.dataset.id));
+      });
+    }
+  },
+
+  /* ------------------------------------------------------------------
+     19. SERVICE WORKER
+     --------------------------------*/
+     registerServiceWorker() {
     if ("serviceWorker" in navigator && (location.protocol === "http:" || location.protocol === "https:")) {
       navigator.serviceWorker.register("service-worker.js").catch(err => {
         console.warn("Kaizen: service worker registration failed.", err);
