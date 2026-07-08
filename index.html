@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0e0b16" />
+<meta name="description" content="Kaizen — offline study tracker for long-term exam prep" />
+<title>Project Kaizen</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%237c5cff'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E改%3C/text%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%237c5cff'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E改%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app-shell">
+
+  <!-- ============ TOP BAR ============ -->
+  <header id="top-bar" class="top-bar">
+    <div class="top-bar-brand">
+      <span class="brand-mark">改</span>
+      <span class="brand-text">Kaizen</span>
+    </div>
+    <div class="top-bar-score" id="top-bar-score" title="Kaizen Score">
+      <span id="top-score-value">--</span>
+    </div>
+  </header>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main id="main-content" class="main-content">
+
+    <!-- ---------- DASHBOARD ---------- -->
+    <section class="page active" id="page-dashboard" data-page="dashboard">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="quote-of-day" id="quote-of-day">Small steps, every day.</p>
+
+      <div class="stat-grid">
+        <div class="stat-card"><span class="stat-label">Today</span><span class="stat-value" id="stat-today">0h 0m</span></div>
+        <div class="stat-card"><span class="stat-label">This Week</span><span class="stat-value" id="stat-week">0h 0m</span></div>
+        <div class="stat-card"><span class="stat-label">This Month</span><span class="stat-value" id="stat-month">0h 0m</span></div>
+        <div class="stat-card"><span class="stat-label">This Year</span><span class="stat-value" id="stat-year">0h 0m</span></div>
+        <div class="stat-card"><span class="stat-label">Lifetime</span><span class="stat-value" id="stat-lifetime">0h 0m</span></div>
+        <div class="stat-card"><span class="stat-label">Current Streak</span><span class="stat-value" id="stat-streak">0 days</span></div>
+        <div class="stat-card"><span class="stat-label">Longest Streak</span><span class="stat-value" id="stat-longest-streak">0 days</span></div>
+        <div class="stat-card"><span class="stat-label">Avg Focus</span><span class="stat-value" id="stat-avg-focus">--</span></div>
+        <div class="stat-card"><span class="stat-label">Avg Energy</span><span class="stat-value" id="stat-avg-energy">--</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>Daily Goal</span><span id="daily-goal-label">0 / 0h</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="daily-goal-fill"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>Weekly Goal</span><span id="weekly-goal-label">0 / 0h</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="weekly-goal-fill"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>Subject Distribution (7 days)</span></div>
+        <canvas id="chart-dash-subject" height="180"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>Kaizen Score</span><span id="kaizen-score-label">0 / 100</span></div>
+        <div class="score-ring-wrap">
+          <canvas id="kaizen-score-ring" width="140" height="140"></canvas>
+          <span class="score-ring-value" id="kaizen-score-ring-value">0</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>Smart Insights</span></div>
+        <ul class="insight-list" id="insight-list"></ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>Japanese</span></div>
+        <div class="mini-row"><span>This week</span><span id="dash-jp-week">0h 0m</span></div>
+        <div class="mini-row"><span>JLPT Countdown</span><span id="dash-jlpt-countdown">Not set</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>Prediction</span></div>
+        <p id="prediction-message" class="prediction-text">Log a session to see predictions.</p>
+      </div>
+    </section>
+
+    <!-- ---------- STUDY LOGGER ---------- -->
+    <section class="page" id="page-study" data-page="study">
+      <h1 class="page-title">Study</h1>
+      <div class="card">
+        <label class="field-label" for="study-subject">Subject</label>
+        <select id="study-subject" class="input-field">
+          <option>Maths</option><option>Physics</option><option>Chemistry</option>
+          <option>Biology</option><option>History</option><option>Geography</option>
+          <option>English</option><option>Hindi</option><option>Japanese</option>
+          <option>Computer</option><option>Essay</option><option>Projects</option>
+        </select>
+
+        <label class="field-label">Duration</label>
+        <div class="duration-grid" id="duration-grid">
+          <button class="chip" data-min="15">15m</button>
+          <button class="chip" data-min="30">30m</button>
+          <button class="chip" data-min="45">45m</button>
+          <button class="chip" data-min="60">1h</button>
+          <button class="chip" data-min="90">1.5h</button>
+          <button class="chip" data-min="120">2h</button>
+        </div>
+        <label class="field-label" for="study-custom">Custom duration (minutes)</label>
+        <input type="number" id="study-custom" class="input-field" placeholder="e.g. 50" min="1" />
+
+        <label class="field-label">Focus <span id="focus-value">3</span>/5</label>
+        <input type="range" id="study-focus" min="1" max="5" value="3" class="slider" />
+
+        <label class="field-label">Energy <span id="energy-value">3</span>/5</label>
+        <input type="range" id="study-energy" min="1" max="5" value="3" class="slider" />
+
+        <label class="field-label" for="study-notes">Notes</label>
+        <textarea id="study-notes" class="input-field" rows="3" placeholder="What did you cover?"></textarea>
+
+        <button class="btn-primary" id="save-session-btn">Save Session</button>
+        <p class="save-confirm" id="save-confirm"></p>
+      </div>
+    </section>
+
+    <!-- ---------- HISTORY ---------- -->
+    <section class="page" id="page-history" data-page="history">
+      <h1 class="page-title">History</h1>
+      <div class="card">
+        <input type="text" id="history-search" class="input-field" placeholder="Search notes..." />
+        <div class="filter-row">
+          <select id="history-filter-subject" class="input-field small">
+            <option value="">All Subjects</option>
+          </select>
+          <select id="history-sort" class="input-field small">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+          </select>
+        </div>
+      </div>
+      <div id="history-list" class="session-list"></div>
+    </section>
+
+    <!-- ---------- CALENDAR ---------- -->
+    <section class="page" id="page-calendar" data-page="calendar">
+      <h1 class="page-title">Calendar</h1>
+      <div class="card">
+        <div class="calendar-nav">
+          <button class="icon-btn" id="cal-prev">‹</button>
+          <span id="cal-month-label">Month</span>
+          <button class="icon-btn" id="cal-next">›</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+      <div class="card" id="calendar-day-detail" style="display:none;">
+        <div class="card-header"><span id="cal-detail-date">--</span></div>
+        <div id="cal-detail-body"></div>
+      </div>
+    </section>
+
+    <!-- ---------- ANALYTICS ---------- -->
+    <section class="page" id="page-analytics" data-page="analytics">
+      <h1 class="page-title">Analytics</h1>
+      <div class="stat-grid">
+        <div class="stat-card"><span class="stat-label">Total Sessions</span><span class="stat-value" id="an-total-sessions">0</span></div>
+        <div class="stat-card"><span class="stat-label">Avg Hours/Day</span><span class="stat-value" id="an-avg-hours">0</span></div>
+        <div class="stat-card"><span class="stat-label">Best Subject</span><span class="stat-value" id="an-best-subject">--</span></div>
+        <div class="stat-card"><span class="stat-label">Weakest Subject</span><span class="stat-value" id="an-weak-subject">--</span></div>
+      </div>
+      <div class="card"><div class="card-header"><span>Weekly Hours</span></div><canvas id="chart-weekly-hours" height="180"></canvas></div>
+      <div class="card"><div class="card-header"><span>Monthly Hours</span></div><canvas id="chart-monthly-hours" height="180"></canvas></div>
+      <div class="card"><div class="card-header"><span>Lifetime Trend</span></div><canvas id="chart-lifetime-trend" height="180"></canvas></div>
+      <div class="card"><div class="card-header"><span>Subject Distribution</span></div><canvas id="chart-subject-dist" height="180"></canvas></div>
+      <div class="card"><div class="card-header"><span>Focus Trend</span></div><canvas id="chart-focus-trend" height="180"></canvas></div>
+      <div class="card"><div class="card-header"><span>Energy Trend</span></div><canvas id="chart-energy-trend" height="180"></canvas></div>
+      <div class="card"><div class="card-header"><span>Weekday Study</span></div><canvas id="chart-weekday" height="180"></canvas></div>
+      <div class="card"><div class="card-header"><span>Time of Day</span></div><canvas id="chart-time-of-day" height="180"></canvas></div>
+    </section>
+
+    <!-- ---------- HABITS ---------- -->
+    <section class="page" id="page-habits" data-page="habits">
+      <h1 class="page-title">Habits</h1>
+      <div class="card">
+        <div class="card-header"><span>Today's Checklist</span></div>
+        <div id="habit-checklist" class="habit-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Sleep</span></div>
+        <label class="field-label" for="sleep-hours">Hours slept last night</label>
+        <input type="number" id="sleep-hours" class="input-field" step="0.5" min="0" max="24" />
+        <button class="btn-primary" id="save-sleep-btn">Save Sleep</button>
+        <div class="mini-row"><span>Weekly average</span><span id="sleep-week-avg">0h</span></div>
+      </div>
+    </section>
+
+    <!-- ---------- JAPANESE ---------- -->
+    <section class="page" id="page-japanese" data-page="japanese">
+      <h1 class="page-title">Japanese</h1>
+      <div class="card">
+        <div class="mini-row"><span>Weekly immersion</span><span id="jp-week-hours">0h 0m</span></div>
+        <label class="field-label" for="jp-immersion-min">Add immersion (minutes)</label>
+        <input type="number" id="jp-immersion-min" class="input-field" min="1" placeholder="e.g. 30" />
+        <select id="jp-immersion-type" class="input-field">
+          <option>Listening</option><option>Reading</option><option>Anki/SRS</option>
+          <option>Speaking</option><option>Grammar</option><option>Other</option>
+        </select>
+        <button class="btn-primary" id="jp-add-immersion-btn">Add</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>JLPT Countdown</span></div>
+        <label class="field-label" for="jlpt-date">Exam date</label>
+        <input type="date" id="jlpt-date" class="input-field" />
+        <select id="jlpt-level" class="input-field">
+          <option>N5</option><option>N4</option><option>N3</option><option>N2</option><option>N1</option>
+        </select>
+        <button class="btn-primary" id="jlpt-save-btn">Save</button>
+        <p class="prediction-text" id="jlpt-countdown-text"></p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Weekly Summary</span></div>
+        <p class="prediction-text" id="jp-weekly-summary">--</p>
+      </div>
+    </section>
+
+    <!-- ---------- GOALS ---------- -->
+    <section class="page" id="page-goals" data-page="goals">
+      <h1 class="page-title">Goals</h1>
+      <div class="card">
+        <div class="card-header"><span>Time Goals (hours)</span></div>
+        <label class="field-label" for="goal-daily">Daily</label>
+        <input type="number" id="goal-daily" class="input-field" step="0.25" min="0" />
+        <label class="field-label" for="goal-weekly">Weekly</label>
+        <input type="number" id="goal-weekly" class="input-field" step="0.5" min="0" />
+        <label class="field-label" for="goal-monthly">Monthly</label>
+        <input type="number" id="goal-monthly" class="input-field" step="1" min="0" />
+        <label class="field-label" for="goal-yearly">Yearly</label>
+        <input type="number" id="goal-yearly" class="input-field" step="1" min="0" />
+        <button class="btn-primary" id="save-goals-btn">Save Goals</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Subject Goals (weekly hours)</span></div>
+        <div id="subject-goal-list"></div>
+        <button class="btn-primary" id="save-subject-goals-btn">Save Subject Goals</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Weekly Planner</span></div>
+        <p class="prediction-text">Track goal vs completed hours per subject for this week.</p>
+        <button class="btn-secondary" id="open-planner-btn">Open Weekly Planner</button>
+      </div>
+    </section>
+
+    <!-- ---------- REVIEW ---------- -->
+    <section class="page" id="page-review" data-page="review">
+      <h1 class="page-title">Review</h1>
+      <div class="card">
+        <div class="card-header"><span>Daily Review</span></div>
+        <label class="field-label">Mood <span id="mood-value">3</span>/5</label>
+        <input type="range" id="review-mood" min="1" max="5" value="3" class="slider" />
+        <label class="field-label">Productivity <span id="productivity-value">3</span>/5</label>
+        <input type="range" id="review-productivity" min="1" max="5" value="3" class="slider" />
+        <label class="field-label" for="review-success">Biggest success</label>
+        <textarea id="review-success" class="input-field" rows="2"></textarea>
+        <label class="field-label" for="review-distraction">Biggest distraction</label>
+        <textarea id="review-distraction" class="input-field" rows="2"></textarea>
+        <label class="field-label" for="review-plan">Tomorrow's plan</label>
+        <textarea id="review-plan" class="input-field" rows="2"></textarea>
+        <button class="btn-primary" id="save-daily-review-btn">Save Daily Review</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Weekly Review</span></div>
+        <p class="prediction-text" id="weekly-review-summary">--</p>
+        <label class="field-label" for="review-week-achievement">Achievement</label>
+        <textarea id="review-week-achievement" class="input-field" rows="2"></textarea>
+        <label class="field-label" for="review-week-weakness">Weakness</label>
+        <textarea id="review-week-weakness" class="input-field" rows="2"></textarea>
+        <label class="field-label" for="review-week-plan">Plan</label>
+        <textarea id="review-week-plan" class="input-field" rows="2"></textarea>
+        <button class="btn-primary" id="save-weekly-review-btn">Save Weekly Review</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Past Reviews</span></div>
+        <div id="review-history-list" class="session-list"></div>
+      </div>
+    </section>
+
+    <!-- ---------- SETTINGS ---------- -->
+    <section class="page" id="page-settings" data-page="settings">
+      <h1 class="page-title">Settings</h1>
+      <div class="card">
+        <div class="card-header"><span>Theme</span></div>
+        <div class="chip-row">
+          <button class="chip" data-theme="dark">Dark</button>
+          <button class="chip" data-theme="light">Light</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Accent Color</span></div>
+        <div class="chip-row" id="accent-color-row">
+          <button class="accent-dot" data-accent="purple" style="background:#7c5cff"></button>
+          <button class="accent-dot" data-accent="blue" style="background:#3b82f6"></button>
+          <button class="accent-dot" data-accent="green" style="background:#22c55e"></button>
+          <button class="accent-dot" data-accent="orange" style="background:#f97316"></button>
+          <button class="accent-dot" data-accent="red" style="background:#ef4444"></button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Daily Reminder</span></div>
+        <label class="field-label" for="reminder-time">Reminder time</label>
+        <input type="time" id="reminder-time" class="input-field" />
+        <button class="btn-primary" id="save-reminder-btn">Save Reminder</button>
+        <p class="prediction-text" id="notif-permission-text"></p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Backup</span></div>
+        <button class="btn-primary" id="export-backup-btn">Export Backup (JSON)</button>
+        <label class="btn-secondary" for="import-backup-input">Import Backup</label>
+        <input type="file" id="import-backup-input" accept="application/json" style="display:none;" />
+        <p class="prediction-text" id="backup-status-text"></p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Danger Zone</span></div>
+        <button class="btn-danger" id="reset-data-btn">Reset All Data</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>About</span></div>
+        <p class="prediction-text">Project Kaizen — 100% offline, local-first study tracker. No account, no server, no tracking.</p>
+      </div>
+    </section>
+
+    <!-- ---------- WEEKLY PLANNER (accessible from Goals/Study extra nav) ---------- -->
+    <section class="page" id="page-planner" data-page="planner">
+      <button class="icon-btn back-btn" id="planner-back-btn">‹ Back</button>
+      <h1 class="page-title">Weekly Planner</h1>
+      <div class="card">
+        <div class="card-header"><span>Set Goal Hours per Subject</span></div>
+        <div id="planner-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Summary</span></div>
+        <p class="prediction-text" id="planner-summary">--</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ BOTTOM NAVIGATION ============ -->
+  <nav id="bottom-nav" class="bottom-nav">
+    <button class="nav-btn active" data-page="dashboard" aria-label="Dashboard">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-btn" data-page="study" aria-label="Study">
+      <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 13.5L4.5 12 12 15.5 19.5 12 12 16.5zM5 13.18v4.34L12 21l7-3.48v-4.34L12 17l-7-3.82z"/></svg>
+      <span>Study</span>
+    </button>
+    <button class="nav-btn" data-page="history" aria-label="History">
+      <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6a7 7 0 1 1 7 7 6.9 6.9 0 0 1-4.9-2l-1.42 1.42A9 9 0 1 0 13 3zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+      <span>History</span>
+    </button>
+    <button class="nav-btn" data-page="calendar" aria-label="Calendar">
+      <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 16H5V8h14v11z"/></svg>
+      <span>Calendar</span>
+    </button>
+    <button class="nav-btn" data-page="analytics" aria-label="Analytics">
+      <svg viewBox="0 0 24 24"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
+      <span>Analytics</span>
+    </button>
+    <button class="nav-btn" data-page="habits" aria-label="Habits">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      <span>Habits</span>
+    </button>
+    <button class="nav-btn" data-page="japanese" aria-label="Japanese">
+      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4z"/></svg>
+      <span>日本語</span>
+    </button>
+    <button class="nav-btn" data-page="goals" aria-label="Goals">
+      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm0-14a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4zm0-6a2 2 0 1 0 2 2 2 2 0 0 0-2-2z"/></svg>
+      <span>Goals</span>
+    </button>
+    <button class="nav-btn" data-page="review" aria-label="Review">
+      <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zm17.71-10.04a1 1 0 0 0 0-1.41l-2.51-2.51a1 1 0 0 0-1.41 0l-1.96 1.96 3.75 3.75z"/></svg>
+      <span>Review</span>
+    </button>
+    <button class="nav-btn" data-page="settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94a7.14 7.14 0 0 0 .06-.94 7.14 7.14 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54a7.03 7.03 0 0 0-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.14 7.14 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.4 1.04.72 1.62.94l.36 2.54a.5.5 0 0 0 .5.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54c.58-.22 1.12-.54 1.62-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64zM12 15.6A3.6 3.6 0 1 1 15.6 12 3.6 3.6 0 0 1 12 15.6z"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- ============ TOAST ============ -->
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
