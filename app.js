@@ -3,7 +3,14 @@
    A single global `App` object holds all logic. No other globals are
    created. All data lives in ONE localStorage key: "kaizenDB".
    ========================================================================== */
-
+window.onerror = function (message, source, line, column, error) {
+  alert(
+    "ERROR:\n\n" +
+    message +
+    "\n\nLine: " + line +
+    "\nColumn: " + column
+  );
+};
 const App = {
 
   /* ------------------------------------------------------------------
