@@ -1,59 +1,68 @@
 /* ==========================================================================
    Project Kaizen — style.css
-   Dark-mode, purple-accent, Material-inspired, mobile-first stylesheet.
+   "Study Hollow" theme: warm cocoa dusk palette, oxblood cards, cream ink,
+   gold accents, serif-italic flourishes. Ghibli-storybook inspired.
    All colors are driven by CSS custom properties so Settings can swap
    theme (dark/light) and accent color at runtime by toggling attributes
    on <html>.
    ========================================================================== */
 
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Quicksand:wght@500;600;700&display=swap");
+
 :root {
-  /* ---- Accent (purple default) ---- */
-  --accent: #7c5cff;
-  --accent-rgb: 124, 92, 255;
-  --accent-strong: #9b82ff;
-  --accent-soft: rgba(124, 92, 255, 0.16);
+  /* ---- Accent (amber/gold default — the Ghibli lantern-light tone) ---- */
+  --accent: #c98a4b;
+  --accent-rgb: 201, 138, 75;
+  --accent-strong: #e3ab6f;
+  --accent-soft: rgba(201, 138, 75, 0.18);
 
-  /* ---- Dark theme surface tokens ---- */
-  --bg: #0e0b16;
-  --bg-elev-1: #16121f;
-  --bg-elev-2: #1e1929;
-  --bg-elev-3: #262032;
-  --border-soft: rgba(255, 255, 255, 0.08);
-  --text-primary: #f2eefb;
-  --text-secondary: #b8b0cc;
-  --text-muted: #7d7591;
-  --danger: #ef4444;
-  --success: #22c55e;
-  --warning: #f59e0b;
+  /* ---- Dusk cocoa surface tokens ---- */
+  --bg: #180f0c;
+  --bg-elev-1: #2c1c17;
+  --bg-elev-2: #3a2620;
+  --bg-elev-3: #48302a;
+  --border-soft: rgba(232, 201, 163, 0.14);
+  --text-primary: #f4e8d8;
+  --text-secondary: #cbaf8f;
+  --text-muted: #94795f;
+  --danger: #d9695a;
+  --success: #8faa6b;
+  --warning: #e0a868;
 
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --radius-sm: 10px;
-  --shadow-elev: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --radius-lg: 22px;
+  --radius-md: 15px;
+  --radius-sm: 11px;
+  --shadow-elev: 0 10px 26px rgba(10, 5, 3, 0.45);
   --nav-height: 68px;
   --top-height: 56px;
+  --banner-height: 108px;
   --transition-fast: 160ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-med: 260ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-body: "Quicksand", "Segoe UI", Roboto, system-ui, sans-serif;
 }
 
-/* ---- Light theme override ---- */
+/* ---- Light theme override: sunlit paper, not stark white ---- */
 html[data-theme="light"] {
-  --bg: #f5f3fa;
-  --bg-elev-1: #ffffff;
-  --bg-elev-2: #f0edf8;
-  --bg-elev-3: #e7e2f5;
-  --border-soft: rgba(0, 0, 0, 0.08);
-  --text-primary: #1c1730;
-  --text-secondary: #4d4568;
-  --text-muted: #8a8299;
-  --shadow-elev: 0 8px 24px rgba(30, 20, 60, 0.12);
+  --bg: #f4e9d8;
+  --bg-elev-1: #fff8ee;
+  --bg-elev-2: #f7ecda;
+  --bg-elev-3: #eeddc0;
+  --border-soft: rgba(90, 58, 34, 0.12);
+  --text-primary: #3a2517;
+  --text-secondary: #6b4c33;
+  --text-muted: #9c7f5f;
+  --shadow-elev: 0 10px 24px rgba(90, 58, 34, 0.14);
 }
 
-/* ---- Accent variants ---- */
-html[data-accent="blue"]   { --accent:#3b82f6; --accent-rgb:59,130,246;  --accent-strong:#60a5fa; --accent-soft:rgba(59,130,246,.16); }
-html[data-accent="green"]  { --accent:#22c55e; --accent-rgb:34,197,94;   --accent-strong:#4ade80; --accent-soft:rgba(34,197,94,.16); }
-html[data-accent="orange"] { --accent:#f97316; --accent-rgb:249,115,22;  --accent-strong:#fb923c; --accent-soft:rgba(249,115,22,.16); }
-html[data-accent="red"]    { --accent:#ef4444; --accent-rgb:239,68,68;   --accent-strong:#f87171; --accent-soft:rgba(239,68,68,.16); }
+/* ---- Accent variants (kept for personalization, retuned warmer) ---- */
+html[data-accent="amber"]  { --accent:#c98a4b; --accent-rgb:201,138,75; --accent-strong:#e3ab6f; --accent-soft:rgba(201,138,75,.18); }
+html[data-accent="purple"] { --accent:#9b7bc4; --accent-rgb:155,123,196; --accent-strong:#b79fdb; --accent-soft:rgba(155,123,196,.18); }
+html[data-accent="blue"]   { --accent:#6f9bc7; --accent-rgb:111,155,199; --accent-strong:#8fb6dc; --accent-soft:rgba(111,155,199,.18); }
+html[data-accent="green"]  { --accent:#7fa361; --accent-rgb:127,163,97;  --accent-strong:#9bbf80; --accent-soft:rgba(127,163,97,.18); }
+html[data-accent="orange"] { --accent:#d1793f; --accent-rgb:209,121,63;  --accent-strong:#e4995f; --accent-soft:rgba(209,121,63,.18); }
+html[data-accent="red"]    { --accent:#c15c52; --accent-rgb:193,92,82;   --accent-strong:#d47f76; --accent-soft:rgba(193,92,82,.18); }
 
 * { box-sizing: border-box; }
 
@@ -66,7 +75,7 @@ html, body {
 body {
   background: var(--bg);
   color: var(--text-primary);
-  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
+  font-family: var(--font-body);
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: contain;
   transition: background var(--transition-med), color var(--transition-med);
@@ -87,13 +96,31 @@ button, input, select, textarea {
 }
 
 /* ==========================================================================
-   TOP BAR
+   HERO BANNER — signature element.
+   A pure-CSS dusk skyline: gradient sky, a soft sun, drifting cloud wisps,
+   and a layered hill silhouette. No images, no libraries, fully offline.
+   ========================================================================== */
+.hero-banner {
+  position: relative;
+  height: var(--banner-height);
+  overflow: hidden;
+  background: linear-gradient(180deg, #3a2a4a 0%, #6b3a3f 42%, #a1583f 72%, #c98a4b 100%);
+}
+.hero-banner.has-photo .sun,
+.hero-banner.has-photo .cloud,
+.hero-banner.has-photo .hills,
+.hero-banner.has-photo .hills-back {
+  display: none;
+}
+
+/* ==========================================================================
+   TOP BAR (score chip — sits under the banner, sticky while scrolling)
    ========================================================================== */
 .top-bar {
   height: var(--top-height);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 0 16px;
   background: var(--bg-elev-1);
   border-bottom: 1px solid var(--border-soft);
@@ -101,17 +128,102 @@ button, input, select, textarea {
   top: 0;
   z-index: 20;
 }
-.top-bar-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: .3px; }
-.brand-mark {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border-radius: 8px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  color: #fff; font-size: 15px;
+.top-bar-brand { display: none; } /* brand now lives in the hero banner */
+.top-bar-left { display: flex; align-items: center; min-height: 32px; }
+.top-bar-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--border-soft);
+  box-shadow: var(--shadow-elev);
 }
-.brand-text { font-size: 16px; }
 .top-bar-score {
   font-size: 13px; font-weight: 700; color: var(--accent);
-  background: var(--accent-soft); padding: 4px 10px; border-radius: 999px;
+  background: var(--accent-soft); padding: 4px 12px; border-radius: 999px;
+  font-family: var(--font-display); letter-spacing: .3px;
+  margin-left: auto;
+}
+.top-bar-score::before { content: "✦ "; }
+/* ==========================================================================
+   GALLERY STRIP — round stills beneath the banner (hidden until populated)
+   ========================================================================== */
+.gallery-strip {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--bg-elev-1);
+  border-bottom: 1px solid var(--border-soft);
+}
+.gallery-strip::-webkit-scrollbar { display: none; }
+.gallery-strip.empty { display: none; padding: 0; border: none; }
+.gallery-strip img {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-elev);
+}
+
+/* ==========================================================================
+   SETTINGS — gallery upload previews
+   ========================================================================== */
+.gallery-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.gallery-preview-banner {
+  width: 100%;
+  max-width: 160px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+}
+.gallery-preview-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-soft);
+}
+.gallery-preview-row .btn-danger {
+  width: auto;
+  margin-top: 0;
+  padding: 8px 14px;
+  font-size: 12px;
+}
+.gallery-manage-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.gallery-manage-item {
+  position: relative;
+  width: 64px; height: 64px;
+}
+.gallery-manage-item img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid var(--border-soft);
+}
+.gallery-manage-item button {
+  position: absolute;
+  top: -6px; right: -6px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: var(--danger);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
 }
 
 /* ==========================================================================
@@ -132,22 +244,50 @@ button, input, select, textarea {
 }
 
 .page-title {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 4px 0 14px 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 28px;
+  text-align: center;
+  margin: 6px 0 4px 0;
   letter-spacing: .2px;
+  color: var(--text-primary);
+}
+.page-title::before, .page-title::after {
+  content: "✦";
+  color: var(--accent);
+  font-size: 13px;
+  vertical-align: middle;
+  margin: 0 10px;
+  opacity: .8;
 }
 
 .quote-of-day {
   color: var(--text-secondary);
+  font-family: var(--font-display);
   font-style: italic;
-  font-size: 13.5px;
-  margin: -6px 0 16px 0;
+  text-align: center;
+  font-size: 14.5px;
+  margin: -2px 0 18px 0;
 }
 
 .back-btn {
   background: none; border: none; color: var(--accent);
   font-size: 14px; font-weight: 600; padding: 4px 0 8px 0; cursor: pointer;
+  font-family: var(--font-body);
+}
+/* ==========================================================================
+   SECTION DIVIDER (used inline where extra ornamentation helps)
+   ========================================================================== */
+.section-divider {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-display); font-style: italic; font-weight: 600;
+  color: var(--accent); font-size: 15px;
+  margin: 22px 0 12px 0;
+}
+.section-divider::before, .section-divider::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-soft), transparent);
 }
 
 /* ==========================================================================
@@ -160,17 +300,20 @@ button, input, select, textarea {
   padding: 16px;
   margin-bottom: 14px;
   box-shadow: var(--shadow-elev);
+  position: relative;
 }
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-weight: 700;
-  font-size: 14.5px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 17px;
   margin-bottom: 12px;
   color: var(--text-primary);
 }
-.card-header span:last-child { color: var(--accent); font-weight: 700; font-size: 13px; }
+.card-header span:first-child::before { content: "❋ "; color: var(--accent); font-size: 13px; }
+.card-header span:last-child { color: var(--accent); font-weight: 700; font-size: 13px; font-family: var(--font-body); }
 
 .mini-row {
   display: flex; justify-content: space-between; align-items: center;
@@ -199,8 +342,8 @@ button, input, select, textarea {
   gap: 6px;
   box-shadow: var(--shadow-elev);
 }
-.stat-label { font-size: 11.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
-.stat-value { font-size: 19px; font-weight: 700; color: var(--text-primary); }
+.stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; }
+.stat-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--text-primary); }
 
 /* ==========================================================================
    PROGRESS BARS
@@ -219,6 +362,7 @@ button, input, select, textarea {
   background: linear-gradient(90deg, var(--accent), var(--accent-strong));
   transition: width var(--transition-med);
 }
+
 /* ==========================================================================
    FORM ELEMENTS
    ========================================================================== */
@@ -238,6 +382,7 @@ button, input, select, textarea {
   border-radius: var(--radius-sm);
   padding: 12px 14px;
   font-size: 14.5px;
+  font-family: var(--font-body);
   color: var(--text-primary);
   outline: none;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
@@ -299,7 +444,7 @@ textarea.input-field { resize: vertical; min-height: 44px; }
 .chip:active { transform: scale(0.95); }
 .chip.selected {
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  color: #fff;
+  color: #201209;
   border-color: transparent;
 }
 
@@ -321,7 +466,7 @@ textarea.input-field { resize: vertical; min-height: 44px; }
   border: none;
   border-radius: var(--radius-sm);
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  color: #fff;
+  color: #201209;
   font-weight: 700;
   font-size: 14.5px;
   cursor: pointer;
@@ -383,7 +528,6 @@ textarea.input-field { resize: vertical; min-height: 44px; }
   transition: opacity var(--transition-fast);
 }
 .save-confirm.show { opacity: 1; }
-
 /* ==========================================================================
    SESSION / HISTORY LIST
    ========================================================================== */
@@ -400,7 +544,8 @@ textarea.input-field { resize: vertical; min-height: 44px; }
   margin-bottom: 6px;
 }
 .session-subject {
-  font-weight: 700; font-size: 14.5px;
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 16px;
   color: var(--accent);
 }
 .session-date { font-size: 12px; color: var(--text-muted); }
@@ -411,13 +556,13 @@ textarea.input-field { resize: vertical; min-height: 44px; }
   flex: 1; padding: 8px; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 700;
   cursor: pointer; border: 1px solid var(--border-soft); background: var(--bg-elev-2); color: var(--text-primary);
 }
-.session-actions button.delete-btn { color: var(--danger); border-color: rgba(239,68,68,.3); }
-.empty-state { text-align:center; color: var(--text-muted); padding: 24px 12px; font-size: 13.5px; }
+.session-actions button.delete-btn { color: var(--danger); border-color: rgba(217,105,90,.35); }
+.empty-state { text-align:center; color: var(--text-muted); padding: 24px 12px; font-size: 13.5px; font-style: italic; font-family: var(--font-display); }
 
 /* ==========================================================================
    CALENDAR
    ========================================================================== */
-.calendar-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-weight: 700; }
+.calendar-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-family: var(--font-display); font-weight: 700; font-size: 17px; }
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .cal-dow { text-align: center; font-size: 10.5px; color: var(--text-muted); padding-bottom: 4px; }
 .cal-cell {
@@ -457,7 +602,7 @@ textarea.input-field { resize: vertical; min-height: 44px; }
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   border-color: transparent;
 }
-.habit-checkbox svg { width: 14px; height: 14px; fill: #fff; opacity: 0; transition: opacity var(--transition-fast); }
+.habit-checkbox svg { width: 14px; height: 14px; fill: #201209; opacity: 0; transition: opacity var(--transition-fast); }
 .habit-checkbox.checked svg { opacity: 1; }
 .habit-name { font-size: 14px; }
 
@@ -466,7 +611,7 @@ textarea.input-field { resize: vertical; min-height: 44px; }
    ========================================================================== */
 .score-ring-wrap { position: relative; display: flex; justify-content: center; align-items: center; }
 .score-ring-value {
-  position: absolute; font-size: 26px; font-weight: 800; color: var(--text-primary);
+  position: absolute; font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--text-primary);
 }
 
 /* ==========================================================================
@@ -555,6 +700,20 @@ textarea.input-field { resize: vertical; min-height: 44px; }
 .planner-row-top { display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 700; margin-bottom: 6px; }
 .planner-row-top span:last-child { color: var(--accent); }
 .planner-inputs { display: flex; gap: 8px; margin-top: 6px; }
+
+/* ==========================================================================
+   INSTALL CARD
+   ========================================================================== */
+.install-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  margin-left: 8px;
+}
 
 /* ==========================================================================
    RESPONSIVE — tablet / desktop
