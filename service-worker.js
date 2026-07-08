@@ -4,7 +4,7 @@
    the app shell files change so old caches are cleared automatically.
    ========================================================================== */
 
-const CACHE_NAME = "kaizen-cache-v1";
+const CACHE_NAME = "kaizen-cache-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
