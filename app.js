@@ -1880,24 +1880,3 @@ const App = {
 
 /* Boot the app once the DOM is ready. */
 document.addEventListener("DOMContentLoaded", () => App.init());
-updateInstallCard() {
-  const btn = this.$("install-app-btn");
-  const badge = this.$("install-status-badge");
-  const text = this.$("install-instructions-text");
-
-  if (!btn || !badge || !text) return;
-
-  if (this.isRunningStandalone()) {
-    btn.style.display = "none";
-    badge.style.display = "inline-block";
-    text.textContent = "Kaizen is already installed.";
-  } else if (this.deferredInstallPrompt) {
-    btn.style.display = "inline-block";
-    badge.style.display = "none";
-    text.textContent = "Install Kaizen to your home screen.";
-  } else {
-    btn.style.display = "none";
-    badge.style.display = "none";
-    text.textContent = "Install will become available if your browser supports it.";
-  }
-},
